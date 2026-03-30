@@ -1,0 +1,6 @@
+{
+  "initialDisabled": true,
+  "successMessage": "추출 완료: 퀴즈1차.txt",
+  "folderEnabled": true,
+  "folderMessage": "추출 폴더를 열었습니다."
+}

@@ -1,0 +1,10 @@
+{
+  "result": {
+    "textFileName": "퀴즈1차.txt"
+  },
+  "textPath": "/tmp/ku-lms-quiz-app-backend-test-2/.canvas-quiz/extracts/퀴즈1차.txt",
+  "artifactPath": "/tmp/ku-lms-quiz-app-backend-test-2/.canvas-quiz/artifacts/퀴즈1차.json",
+  "textIncludesAnswer": true,
+  "textIncludesExplanation": true,
+  "jsonTitle": "퀴즈1차"
+}

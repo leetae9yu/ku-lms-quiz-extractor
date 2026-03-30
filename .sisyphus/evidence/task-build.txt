@@ -1,0 +1,4 @@
+
+> ku-lms-quiz-app@0.1.0 build
+> tsc -p tsconfig.json
+

@@ -215,7 +215,6 @@ export function renderUiHtml(): string {
         const url = quizUrl.value.trim();
 
         if (!url) {
-          setFolderReady(false);
           setStatus("퀴즈 URL을 입력하세요.");
           quizUrl.focus();
           return;
@@ -227,7 +226,6 @@ export function renderUiHtml(): string {
         }
 
         setBusy(true);
-        setFolderReady(false);
         setStatus("추출 중...");
 
         try {
@@ -240,7 +238,6 @@ export function renderUiHtml(): string {
             setStatus("추출 완료");
           }
         } catch (error) {
-          setFolderReady(false);
           setStatus(normalizeError(error, "추출에 실패했습니다."));
         } finally {
           setBusy(false);

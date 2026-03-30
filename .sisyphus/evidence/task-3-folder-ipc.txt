@@ -1,0 +1,4 @@
+{
+  "hasOpen": true,
+  "takesArgs": 0
+}

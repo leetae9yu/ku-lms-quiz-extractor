@@ -26,7 +26,6 @@ export interface LoginResult {
 
 export interface ExtractResult {
   textFileName: string;
-  extraction: CanvasQuizExtraction;
 }
 
 export interface BackendOptions {
@@ -139,7 +138,6 @@ export async function extractQuiz(url: string, options: BackendOptions): Promise
 
     return {
       textFileName: basename(textOutputPath),
-      extraction,
     };
   } finally {
     await context?.close().catch(() => undefined);

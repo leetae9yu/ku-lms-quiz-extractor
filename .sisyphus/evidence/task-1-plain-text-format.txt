@@ -1,0 +1,26 @@
+퀴즈 1차
+
+문제 1
+첫 문제
+
+1. A
+2. B
+3. C
+
+정답: 2번
+해설: 정답 근거
+
+문제 2
+<img src="q2.png">
+
+1. <img src="a1.png">
+2. 선지 2
+3. 선지 3
+4. 선지 4
+5. 선지 5
+
+정답: 1번
+해설: 문제 해설
+
+/tmp/workspace/.canvas-quiz/extracts/퀴즈-1차.txt
+/tmp/workspace/.canvas-quiz/artifacts/퀴즈-1차.json

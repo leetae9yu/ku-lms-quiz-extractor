@@ -71,6 +71,14 @@ function extractTextBlock(element: Element | null | undefined): CanvasQuizTextBl
   };
 }
 
+function preferredText(block: CanvasQuizTextBlock | undefined): string {
+  if (!block) {
+    return "";
+  }
+
+  return block.text.length > 0 ? block.text : block.html ?? "";
+}
+
 function firstNonEmptyBlock(root: ParentNode, selectors: string[]): CanvasQuizTextBlock | undefined {
   for (const selector of selectors) {
     const block = extractTextBlock(root.querySelector(selector));
@@ -152,7 +160,7 @@ export function extractCanvasQuizFromHtml(html: string, url: string): CanvasQuiz
 
           return {
             index: 0,
-            text: answerBlock?.text ?? answerBlock?.html ?? "",
+            text: preferredText(answerBlock),
             html: answerBlock?.html,
             isCorrect: answerElement.classList.contains("correct_answer"),
             isSelected: answerElement.classList.contains("selected_answer"),
@@ -169,7 +177,7 @@ export function extractCanvasQuizFromHtml(html: string, url: string): CanvasQuiz
       return {
         index: questionIndex + 1,
         label: label.length > 0 ? label : undefined,
-        text: questionBlock?.text ?? questionBlock?.html ?? "",
+        text: preferredText(questionBlock),
         html: questionBlock?.html,
         answers,
         correctAnswerIndexes: answers.filter((answer) => answer.isCorrect).map((answer) => answer.index),
@@ -267,7 +275,7 @@ function questionLabel(question: CanvasQuizQuestion): string {
 }
 
 function answerLine(answer: CanvasQuizAnswer): string {
-  return `${answer.index}. ${answer.text}`;
+  return `${answer.index}. ${answer.text.length > 0 ? answer.text : answer.html ?? ""}`;
 }
 
 function answerIndexesLabel(indexes: number[]): string {
@@ -294,7 +302,7 @@ export function formatCanvasQuizText(extraction: CanvasQuizExtraction): string {
 
   for (const question of extraction.questions) {
     lines.push(questionLabel(question));
-    lines.push(question.text);
+    lines.push(question.text.length > 0 ? question.text : question.html ?? "");
     lines.push("");
 
     for (const answer of question.answers) {

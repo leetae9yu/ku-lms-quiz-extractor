@@ -98,6 +98,11 @@ export function renderUiHtml(): string {
         font-size: 12px;
         color: #5f6368;
       }
+
+      .folder {
+        width: auto;
+        min-width: 112px;
+      }
     </style>
   </head>
   <body>
@@ -117,6 +122,7 @@ export function renderUiHtml(): string {
           />
           <button id="extractButton" class="submit" type="submit">추출</button>
         </form>
+        <button id="openFolderButton" class="folder" type="button" disabled>폴더 열기</button>
         <div id="statusText" class="status">준비됨</div>
       </section>
     </main>
@@ -124,9 +130,11 @@ export function renderUiHtml(): string {
     <script>
       const loginButton = document.getElementById("loginButton");
       const extractButton = document.getElementById("extractButton");
+      const openFolderButton = document.getElementById("openFolderButton");
       const extractForm = document.getElementById("extractForm");
       const quizUrl = document.getElementById("quizUrl");
       const statusText = document.getElementById("statusText");
+      let canOpenFolder = false;
 
       function setStatus(message) {
         statusText.textContent = message;
@@ -144,6 +152,7 @@ export function renderUiHtml(): string {
         loginButton.disabled = busy;
         extractButton.disabled = busy;
         quizUrl.disabled = busy;
+        openFolderButton.disabled = busy || !canOpenFolder;
       }
 
       function getApi(name) {
@@ -152,6 +161,11 @@ export function renderUiHtml(): string {
         }
 
         return window.quizApp[name].bind(window.quizApp);
+      }
+
+      function setFolderReady(ready) {
+        canOpenFolder = ready;
+        openFolderButton.disabled = !ready;
       }
 
       loginButton.addEventListener("click", async function () {
@@ -175,6 +189,25 @@ export function renderUiHtml(): string {
         }
       });
 
+      openFolderButton.addEventListener("click", async function () {
+        const openFolder = getApi("openExtractsFolder");
+
+        if (!openFolder || !canOpenFolder) {
+          return;
+        }
+
+        setBusy(true);
+
+        try {
+          await openFolder();
+          setStatus("추출 폴더를 열었습니다.");
+        } catch (error) {
+          setStatus(normalizeError(error, "폴더를 열지 못했습니다."));
+        } finally {
+          setBusy(false);
+        }
+      });
+
       extractForm.addEventListener("submit", async function (event) {
         event.preventDefault();
 
@@ -182,6 +215,7 @@ export function renderUiHtml(): string {
         const url = quizUrl.value.trim();
 
         if (!url) {
+          setFolderReady(false);
           setStatus("퀴즈 URL을 입력하세요.");
           quizUrl.focus();
           return;
@@ -193,16 +227,20 @@ export function renderUiHtml(): string {
         }
 
         setBusy(true);
+        setFolderReady(false);
         setStatus("추출 중...");
 
         try {
           const result = await extract(url);
-          if (result && typeof result === "object" && result.outputPath) {
-            setStatus("추출 완료: " + result.outputPath);
+          if (result && typeof result === "object" && result.textFileName) {
+            setFolderReady(true);
+            setStatus("추출 완료: " + result.textFileName);
           } else {
+            setFolderReady(true);
             setStatus("추출 완료");
           }
         } catch (error) {
+          setFolderReady(false);
           setStatus(normalizeError(error, "추출에 실패했습니다."));
         } finally {
           setBusy(false);

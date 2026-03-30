@@ -1,8 +1,9 @@
-import { app, BrowserWindow, ipcMain } from "electron";
+import { app, BrowserWindow, ipcMain, shell } from "electron";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { extractQuiz, loginToCanvas } from "./backend.js";
+import { defaultCanvasQuizOutputDirectory } from "./lib/canvas-quiz.js";
 import { uiHtml } from "./ui.js";
 
 const currentFile = fileURLToPath(import.meta.url);
@@ -40,6 +41,15 @@ function createWindow(): BrowserWindow {
 async function bootstrap(): Promise<void> {
   ipcMain.handle("quiz:login", async () => loginToCanvas({ workspace: appWorkspace() }));
   ipcMain.handle("quiz:extract", async (_event, url: string) => extractQuiz(url, { workspace: appWorkspace() }));
+  ipcMain.handle("quiz:open-extracts-folder", async () => {
+    const directory = defaultCanvasQuizOutputDirectory(appWorkspace());
+    const error = await shell.openPath(directory);
+    if (error) {
+      throw new Error(error);
+    }
+
+    return directory;
+  });
 
   await app.whenReady();
   createWindow();

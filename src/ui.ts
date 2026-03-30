@@ -114,7 +114,6 @@ export function renderUiHtml(): string {
             placeholder="퀴즈 URL 입력"
             autocomplete="url"
             spellcheck="false"
-            required
           />
           <button id="extractButton" class="submit" type="submit">추출</button>
         </form>
@@ -131,6 +130,14 @@ export function renderUiHtml(): string {
 
       function setStatus(message) {
         statusText.textContent = message;
+      }
+
+      function normalizeError(error, fallbackMessage) {
+        if (!error || typeof error.message !== "string") {
+          return fallbackMessage;
+        }
+
+        return error.message.replace(/^Error invoking remote method '[^']+': Error:\s*/, "");
       }
 
       function setBusy(busy) {
@@ -162,7 +169,7 @@ export function renderUiHtml(): string {
           await login();
           setStatus("로그인 완료");
         } catch (error) {
-          setStatus(error && error.message ? error.message : "로그인에 실패했습니다.");
+          setStatus(normalizeError(error, "로그인에 실패했습니다."));
         } finally {
           setBusy(false);
         }
@@ -196,7 +203,7 @@ export function renderUiHtml(): string {
             setStatus("추출 완료");
           }
         } catch (error) {
-          setStatus(error && error.message ? error.message : "추출에 실패했습니다.");
+          setStatus(normalizeError(error, "추출에 실패했습니다."));
         } finally {
           setBusy(false);
         }

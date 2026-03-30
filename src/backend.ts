@@ -1,14 +1,18 @@
 import { access, mkdir, writeFile } from "node:fs/promises";
-import { dirname } from "node:path";
+import { basename, dirname } from "node:path";
 
 import { chromium, type Browser, type BrowserContext, type Page } from "playwright";
 
 import {
   DEFAULT_CANVAS_BASE_URL,
   defaultCanvasQuizAuthFile,
+  defaultCanvasQuizArtifactFile,
+  defaultCanvasQuizArtifactDirectory,
   defaultCanvasQuizOutputFile,
+  defaultCanvasQuizOutputDirectory,
   ensureExtension,
   extractCanvasQuizFromHtml,
+  formatCanvasQuizText,
   isLikelyCanvasLoginPage,
   looksLikeCanvasQuizResults,
   resolveCanvasQuizFilePath,
@@ -21,7 +25,7 @@ export interface LoginResult {
 }
 
 export interface ExtractResult {
-  outputPath: string;
+  textFileName: string;
   extraction: CanvasQuizExtraction;
 }
 
@@ -123,11 +127,20 @@ export async function extractQuiz(url: string, options: BackendOptions): Promise
       throw new Error("퀴즈 결과 페이지를 찾지 못했습니다. 시도 이력/결과 페이지 URL인지 확인해 주세요.");
     }
 
-    const outputPath = ensureExtension(defaultCanvasQuizOutputFile(workspace, extraction, "json"), "json");
-    await mkdir(dirname(outputPath), { recursive: true });
-    await writeFile(outputPath, serializeExtraction(extraction), "utf8");
+    const textOutputPath = ensureExtension(defaultCanvasQuizOutputFile(workspace, extraction, "text"), "text");
+    const artifactPath = ensureExtension(defaultCanvasQuizArtifactFile(workspace, extraction), "json");
 
-    return { outputPath, extraction };
+    await mkdir(defaultCanvasQuizOutputDirectory(workspace), { recursive: true });
+    await mkdir(defaultCanvasQuizArtifactDirectory(workspace), { recursive: true });
+    await mkdir(dirname(textOutputPath), { recursive: true });
+    await mkdir(dirname(artifactPath), { recursive: true });
+    await writeFile(textOutputPath, formatCanvasQuizText(extraction), "utf8");
+    await writeFile(artifactPath, serializeExtraction(extraction), "utf8");
+
+    return {
+      textFileName: basename(textOutputPath),
+      extraction,
+    };
   } finally {
     await context?.close().catch(() => undefined);
     await browser?.close().catch(() => undefined);

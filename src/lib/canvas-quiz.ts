@@ -43,6 +43,8 @@ export interface CanvasQuizExtraction {
   questions: CanvasQuizQuestion[];
 }
 
+export type CanvasQuizOutputFormat = "json" | "text";
+
 function collapseWhitespace(value: string): string {
   return value.replace(/\s+/g, " ").trim();
 }
@@ -219,11 +221,32 @@ export function defaultCanvasQuizAuthFile(workspace: string): string {
   return resolve(workspace, ".canvas-quiz", "storage-state.json");
 }
 
-export function defaultCanvasQuizOutputFile(workspace: string, extraction: CanvasQuizExtraction, format: "json" | "markdown"): string {
+function formatFileExtension(format: CanvasQuizOutputFormat): ".json" | ".txt" {
+  return format === "json" ? ".json" : ".txt";
+}
+
+export function defaultCanvasQuizOutputDirectory(workspace: string): string {
+  return resolve(workspace, ".canvas-quiz", "extracts");
+}
+
+export function defaultCanvasQuizArtifactDirectory(workspace: string): string {
+  return resolve(workspace, ".canvas-quiz", "artifacts");
+}
+
+export function defaultCanvasQuizOutputFile(
+  workspace: string,
+  extraction: CanvasQuizExtraction,
+  format: CanvasQuizOutputFormat,
+): string {
   const title = extraction.meta.title ?? extraction.questions[0]?.text ?? "quiz";
   const stem = sanitizeFileStem(title);
-  const extension = format === "json" ? ".json" : ".md";
-  return resolve(workspace, ".canvas-quiz", "extracts", `${stem}${extension}`);
+  return resolve(defaultCanvasQuizOutputDirectory(workspace), `${stem}${formatFileExtension(format)}`);
+}
+
+export function defaultCanvasQuizArtifactFile(workspace: string, extraction: CanvasQuizExtraction): string {
+  const title = extraction.meta.title ?? extraction.questions[0]?.text ?? "quiz";
+  const stem = sanitizeFileStem(title);
+  return resolve(defaultCanvasQuizArtifactDirectory(workspace), `${stem}${formatFileExtension("json")}`);
 }
 
 export function resolveCanvasQuizFilePath(workspace: string, filePath: string): string {
@@ -234,7 +257,60 @@ export function resolveCanvasQuizFilePath(workspace: string, filePath: string): 
   return resolve(workspace, filePath);
 }
 
-export function ensureExtension(filePath: string, format: "json" | "markdown"): string {
-  const expectedExtension = format === "json" ? ".json" : ".md";
+export function ensureExtension(filePath: string, format: CanvasQuizOutputFormat): string {
+  const expectedExtension = formatFileExtension(format);
   return extname(filePath).length > 0 ? filePath : `${filePath}${expectedExtension}`;
+}
+
+function questionLabel(question: CanvasQuizQuestion): string {
+  return question.label ?? `문제 ${question.index}`;
+}
+
+function answerLine(answer: CanvasQuizAnswer): string {
+  return `${answer.index}. ${answer.text}`;
+}
+
+function answerIndexesLabel(indexes: number[]): string {
+  if (indexes.length === 0) {
+    return "정보 없음";
+  }
+
+  return indexes.map((index) => `${index}번`).join(", ");
+}
+
+function explanationLine(question: CanvasQuizQuestion): string | undefined {
+  const answerComment = question.answers.find((answer) => answer.comment?.text)?.comment?.text;
+  const comment = answerComment ?? question.questionComment?.text;
+  return comment ? `해설: ${comment}` : undefined;
+}
+
+export function formatCanvasQuizText(extraction: CanvasQuizExtraction): string {
+  const lines: string[] = [];
+
+  if (extraction.meta.title) {
+    lines.push(extraction.meta.title);
+    lines.push("");
+  }
+
+  for (const question of extraction.questions) {
+    lines.push(questionLabel(question));
+    lines.push(question.text);
+    lines.push("");
+
+    for (const answer of question.answers) {
+      lines.push(answerLine(answer));
+    }
+
+    lines.push("");
+    lines.push(`정답: ${answerIndexesLabel(question.correctAnswerIndexes)}`);
+
+    const explanation = explanationLine(question);
+    if (explanation) {
+      lines.push(explanation);
+    }
+
+    lines.push("");
+  }
+
+  return `${lines.join("\n").trim()}\n`;
 }

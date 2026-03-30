@@ -84,7 +84,7 @@ function extractQuizMeta(document: Document): CanvasQuizMeta {
   const title = collapseWhitespace(document.querySelector("#quiz_title")?.textContent ?? "");
   const score = collapseWhitespace(document.querySelector(".quiz_score .score_value")?.textContent ?? "");
 
-  const metaLines = Array.from(document.querySelectorAll(".quiz-submission > div"))
+  const metaLines = Array.from(document.querySelectorAll<HTMLDivElement>(".quiz-submission > div"))
     .map((element) => collapseWhitespace(element.textContent ?? ""))
     .filter((line) => line.length > 0);
 
@@ -114,7 +114,9 @@ export function extractCanvasQuizFromHtml(html: string, url: string): CanvasQuiz
   const dom = new JSDOM(html);
   const { document } = dom.window;
 
-  const questionElements = Array.from(document.querySelectorAll(".question_holder .display_question.question"));
+  const questionElements = Array.from(
+    document.querySelectorAll<HTMLElement>(".question_holder .display_question.question"),
+  );
 
   const questions = questionElements
     .map((questionElement, questionIndex) => {
@@ -126,7 +128,9 @@ export function extractCanvasQuizFromHtml(html: string, url: string): CanvasQuiz
       ]);
 
       const answerElements = Array.from(
-        questionElement.querySelectorAll(".answers_wrapper > .answer, .answers .answer, .answer_group .answer"),
+        questionElement.querySelectorAll<HTMLElement>(
+          ".answers_wrapper > .answer, .answers .answer, .answer_group .answer",
+        ),
       );
       const extractedAnswers = answerElements
         .map((answerElement) => {

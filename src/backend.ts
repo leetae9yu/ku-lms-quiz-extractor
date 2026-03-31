@@ -1,7 +1,7 @@
 import { access, mkdir, writeFile } from "node:fs/promises";
 import { basename, dirname } from "node:path";
 
-import { chromium, type Browser, type BrowserContext, type Page } from "playwright";
+import type { Browser, BrowserContext, BrowserType, Page } from "playwright";
 
 import {
   DEFAULT_CANVAS_BASE_URL,
@@ -37,6 +37,12 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+async function getChromium(): Promise<BrowserType> {
+  process.env.PLAYWRIGHT_BROWSERS_PATH = "0";
+  const { chromium } = await import("playwright");
+  return chromium;
+}
+
 async function waitForCompletedLogin(page: Page, baseUrl: string, timeoutMs: number): Promise<{ currentUrl: string; html: string }> {
   const deadline = Date.now() + timeoutMs;
 
@@ -66,6 +72,7 @@ export async function loginToCanvas(options: BackendOptions): Promise<LoginResul
   const workspace = resolveCanvasQuizFilePath(options.workspace, ".");
   const baseUrl = options.baseUrl ?? DEFAULT_CANVAS_BASE_URL;
   const authFile = resolveCanvasQuizFilePath(workspace, defaultCanvasQuizAuthFile(workspace));
+  const chromium = await getChromium();
 
   await mkdir(dirname(authFile), { recursive: true });
 
@@ -92,6 +99,7 @@ export async function extractQuiz(url: string, options: BackendOptions): Promise
   const workspace = resolveCanvasQuizFilePath(options.workspace, ".");
   const baseUrl = options.baseUrl ?? DEFAULT_CANVAS_BASE_URL;
   const authFile = resolveCanvasQuizFilePath(workspace, defaultCanvasQuizAuthFile(workspace));
+  const chromium = await getChromium();
 
   try {
     await access(authFile);

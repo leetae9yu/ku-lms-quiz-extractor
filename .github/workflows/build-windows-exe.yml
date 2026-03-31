@@ -1,0 +1,43 @@
+name: build-windows-exe
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  build-windows-exe:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Windows app
+        run: npm run dist:win
+
+      - name: Verify packaged Playwright browser is Windows
+        shell: pwsh
+        run: |
+          $chromeWin = Get-ChildItem -Path "release/win-unpacked/resources/app.asar.unpacked/node_modules/playwright-core/.local-browsers" -Recurse -Filter chrome.exe -ErrorAction SilentlyContinue
+          if (-not $chromeWin) {
+            Write-Error "Expected a Windows Playwright browser bundle (chrome.exe) in the packaged app, but none was found."
+          }
+
+      - name: Upload Windows unpacked artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ku-lms-quiz-extractor-win-unpacked
+          path: release/win-unpacked/
+          if-no-files-found: error

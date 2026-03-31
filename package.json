@@ -2,20 +2,51 @@
   "name": "ku-lms-quiz-app",
   "version": "0.1.0",
   "private": true,
+  "description": "KU LMS quiz extractor desktop app",
+  "author": "leetae9yu",
   "type": "module",
   "main": "dist/main.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "start": "npm run build && electron ."
+    "start": "npm run build && electron .",
+    "prepare:playwright-browsers": "cross-env PLAYWRIGHT_BROWSERS_PATH=0 playwright install chromium",
+    "dist:win": "node ./scripts/dist-win.mjs"
   },
   "dependencies": {
-    "electron": "^35.1.5",
     "jsdom": "^27.0.0",
     "playwright": "^1.55.0"
   },
   "devDependencies": {
     "@types/jsdom": "^27.0.0",
     "@types/node": "^24.5.2",
+    "cross-env": "^7.0.3",
+    "electron": "^35.1.5",
+    "electron-builder": "^24.13.3",
     "typescript": "^5.9.2"
+  },
+  "build": {
+    "appId": "com.leetae9yu.kulmsquizextractor",
+    "productName": "KU LMS Quiz Extractor",
+    "asar": true,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json",
+      "node_modules/playwright/.local-browsers/**/*",
+      "node_modules/playwright-core/.local-browsers/**/*"
+    ],
+    "win": {
+      "signAndEditExecutable": false,
+      "target": [
+        {
+          "target": "dir",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    }
   }
 }
